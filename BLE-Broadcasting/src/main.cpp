@@ -14,7 +14,7 @@ class MyServer : public BLEServerCallbacks {
 
     void onDisconnect(BLEServer* pServer) {
         Serial.println("Disconnected.");
-        pServer->getAdvertising()->start();
+        pServer->getAdvertising()->start(); // Fixes bug where disconnecting stops advertising
     }
 };
 
