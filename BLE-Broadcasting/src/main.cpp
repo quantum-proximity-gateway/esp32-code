@@ -23,9 +23,7 @@ void setup() {
     Serial.begin(9600);
     Serial.println("Starting BLE Server");
     BLEDevice::init("ESP32 Key"); // Change this to whatever you need
-    // BLEAddress address = BLEDevice::getAddress();
-    // Serial.print("Device MAC Address: ");
-    // Serial.println(address.toString().c_str());
+    
     BLEServer *pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServer());
     BLEService *pService = pServer->createService(SERVICE_UUID);
@@ -49,4 +47,7 @@ void setup() {
 }
 
 void loop() {
+    BLEAddress address = BLEDevice::getAddress();
+    Serial.println(address.toString().c_str());
+    delay(500);
 }
