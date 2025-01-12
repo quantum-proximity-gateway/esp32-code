@@ -33,7 +33,7 @@ void setup() {
         BLECharacteristic::PROPERTY_WRITE
     );
     
-    pCharacteristic->setValue("{Key: 123554432432, MAC: 2a:23}");
+    pCharacteristic->setValue("{\"Key\": 123554432432, \"MAC\": \"" + BLEDevice::getAddress().toString() + "\"}");
     pService->start();
 
     BLEAdvertisementData oAdvertisementData;
@@ -41,7 +41,7 @@ void setup() {
     oAdvertisementData.setCompleteServices(BLEUUID(SERVICE_UUID));  // Add service UUID
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->setAdvertisementData(oAdvertisementData);
-    pAdvertising->setScanResponse(false);  // Disable scan response if not needed
+    pAdvertising->setScanResponse(true);  // Disable scan response if not needed
     pAdvertising->start();
     BLEDevice::startAdvertising();
 }
