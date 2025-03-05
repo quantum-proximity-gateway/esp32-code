@@ -33,7 +33,7 @@ void setup() {
         BLECharacteristic::PROPERTY_WRITE
     );
     
-    pCharacteristic->setValue("{\"Key\": 123554432432, \"MAC\": \"" + BLEDevice::getAddress().toString() + "\"}");
+    pCharacteristic->setValue("{\"Key\": \"Ds7AWe^V\+O6K5poT7Wd,p]atf$MY/8o\", \"MAC\": \"" + BLEDevice::getAddress().toString() + "\"}");
     pService->start();
 
     BLEAdvertisementData oAdvertisementData;
@@ -50,4 +50,6 @@ void loop() {
     BLEAddress address = BLEDevice::getAddress();
     Serial.println(address.toString().c_str());
     delay(500);
+    String received = Serial.readStringUntil('\n');
+    Serial.println(received.c_str());
 }
