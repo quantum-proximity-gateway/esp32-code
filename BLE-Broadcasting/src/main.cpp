@@ -7,6 +7,8 @@
 #define SERVICE_UUID "2246ef74-f912-417f-8530-4a7df291d584"
 #define CHARACTERISTIC_UUID "a3445e11-5bff-4d2a-a3b1-b127f9567bb6"
 
+BLECharacteristic *pCharacteristic;
+
 class MyServer : public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
         Serial.println("Connected.");
@@ -27,13 +29,13 @@ void setup() {
     BLEServer *pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServer());
     BLEService *pService = pServer->createService(SERVICE_UUID);
-    BLECharacteristic *pCharacteristic = pService->createCharacteristic(
+    pCharacteristic = pService->createCharacteristic(
         CHARACTERISTIC_UUID,
         BLECharacteristic::PROPERTY_READ |
         BLECharacteristic::PROPERTY_WRITE
     );
     
-    pCharacteristic->setValue("{\"Key\": \"Ds7AWe^V\+O6K5poT7Wd,p]atf$MY/8o\", \"MAC\": \"" + BLEDevice::getAddress().toString() + "\"}");
+    pCharacteristic->setValue("Unregistered device");
     pService->start();
 
     BLEAdvertisementData oAdvertisementData;
@@ -47,9 +49,20 @@ void setup() {
 }
 
 void loop() {
+    long time_now = millis() / 1000;
+    Serial.println(time_now);
     BLEAddress address = BLEDevice::getAddress();
     Serial.println(address.toString().c_str());
-    delay(500);
-    String received = Serial.readStringUntil('\n');
-    Serial.println(received.c_str());
+    if (Serial.available() > 0) {
+        String received = Serial.readStringUntil('\n');
+        if (received.length() > 0) {
+            unsigned int otp = generate_totp((const unsigned char*)received.c_str(), received.length(), time_now);
+            String otp_str = String(otp);
+            pCharacteristic->setValue(otp_str.c_str());
+            Serial.print("OTP: ");
+            Serial.println(otp_str);
+        }
+        Serial.println(received.c_str());
+    }
+    delay(1000);
 }
