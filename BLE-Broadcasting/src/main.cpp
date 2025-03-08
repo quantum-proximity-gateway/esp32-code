@@ -8,6 +8,11 @@
 #define CHARACTERISTIC_UUID "a3445e11-5bff-4d2a-a3b1-b127f9567bb6"
 
 BLECharacteristic *pCharacteristic;
+long time_now;
+String secret;
+unsigned int otp;
+bool done = false;
+
 
 class MyServer : public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -49,19 +54,25 @@ void setup() {
 }
 
 void loop() {
-    long time_now = millis() / 1000;
-    BLEAddress address = BLEDevice::getAddress();
-    Serial.println(address.toString().c_str());
+    if (!done) {
+        BLEAddress address = BLEDevice::getAddress();
+        Serial.println(address.toString().c_str());
+    }
+    
     if (Serial.available() > 0) {
-        String secret = Serial.readStringUntil('\n');
+        secret = Serial.readStringUntil('\n');
         if (secret.length() > 0) {
-            unsigned int otp = generate_totp((const unsigned char*)secret.c_str(), received.length(), time_now);
-            String otp_str = String(otp);
-            pCharacteristic->setValue(otp_str.c_str());
-            Serial.print("OTP: ");
-            Serial.println(otp_str);
+            done = true;
+            time_now = 0; // By setting epoch as time since secret received I avoided NTP connections
         }
         Serial.println(secret.c_str());
     }
+    if (done) {  
+        otp = generate_totp((const unsigned char*)secret.c_str(), secret.length(), time_now);
+        Serial.println(otp);
+        String otp_str = String(otp);
+        pCharacteristic->setValue(otp_str.c_str());
+    }
     delay(1000);
+    time_now += 1;
 }
