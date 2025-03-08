@@ -50,19 +50,18 @@ void setup() {
 
 void loop() {
     long time_now = millis() / 1000;
-    Serial.println(time_now);
     BLEAddress address = BLEDevice::getAddress();
     Serial.println(address.toString().c_str());
     if (Serial.available() > 0) {
-        String received = Serial.readStringUntil('\n');
-        if (received.length() > 0) {
-            unsigned int otp = generate_totp((const unsigned char*)received.c_str(), received.length(), time_now);
+        String secret = Serial.readStringUntil('\n');
+        if (secret.length() > 0) {
+            unsigned int otp = generate_totp((const unsigned char*)secret.c_str(), received.length(), time_now);
             String otp_str = String(otp);
             pCharacteristic->setValue(otp_str.c_str());
             Serial.print("OTP: ");
             Serial.println(otp_str);
         }
-        Serial.println(received.c_str());
+        Serial.println(secret.c_str());
     }
     delay(1000);
 }
