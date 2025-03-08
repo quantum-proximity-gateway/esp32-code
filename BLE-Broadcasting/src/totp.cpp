@@ -55,7 +55,7 @@ unsigned int generate_totp(const unsigned char *key, size_t key_len, uint64_t ti
     for (int i = 0; i < TOTP_DIGITS; i++) {
         mod_divisor *= 10;
     }
-    
+    // Sometimes generates less than 6 digits may need to add padding
     unsigned int otp = bin_code % mod_divisor;
     return otp;
 }
