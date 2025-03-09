@@ -65,11 +65,9 @@ void loop() {
             done = true;
             time_now = 0; // By setting epoch as time since secret received I avoided NTP connections
         }
-        Serial.println(secret.c_str());
     }
     if (done) {  
         otp = generate_totp((const unsigned char*)secret.c_str(), secret.length(), time_now);
-        Serial.println(otp);
         String otp_str = String(otp);
         pCharacteristic->setValue(otp_str.c_str());
     }
