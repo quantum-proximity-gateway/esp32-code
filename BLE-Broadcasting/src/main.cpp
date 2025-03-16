@@ -4,15 +4,16 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include <totp.h>
+#include <Preferences.h>
 #define SERVICE_UUID "2246ef74-f912-417f-8530-4a7df291d584"
 #define CHARACTERISTIC_UUID "a3445e11-5bff-4d2a-a3b1-b127f9567bb6"
 
+Preferences preferences;
 BLECharacteristic *pCharacteristic;
 long time_now;
 String secret;
 unsigned int otp;
 bool done = false;
-
 
 class MyServer : public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
@@ -25,10 +26,13 @@ class MyServer : public BLEServerCallbacks {
     }
 };
 
-
 void setup() {
     Serial.begin(9600);
     Serial.println("Starting BLE Server");
+    
+    // Initialize Preferences (NVS)
+    preferences.begin("storage", false); // namespace "storage", read/write access
+    
     BLEDevice::init("ESP32 Key"); // Change this to whatever you need
     
     BLEServer *pServer = BLEDevice::createServer();
@@ -39,6 +43,12 @@ void setup() {
         BLECharacteristic::PROPERTY_READ |
         BLECharacteristic::PROPERTY_WRITE
     );
+
+    secret = preferences.getString("shared_secret", "");
+    if (secret.length() > 0) {
+        done = true; // Skip waiting for new input
+        Serial.println("Shared secret loaded from NVS.");
+    }
     
     pCharacteristic->setValue("Unregistered device");
     pService->start();
@@ -51,6 +61,9 @@ void setup() {
     pAdvertising->setScanResponse(true);  // Disable scan response if not needed
     pAdvertising->start();
     BLEDevice::startAdvertising();
+
+    // Start time_now only after checking the secret
+    time_now = 0;
 }
 
 void loop() {
@@ -64,6 +77,8 @@ void loop() {
         if (secret.length() > 0) {
             done = true;
             time_now = 0; // By setting epoch as time since secret received I avoided NTP connections
+            preferences.putString("shared_secret", secret);
+            Serial.println("Shared secret saved to NVS.");
         }
     }
     if (done) {  
